@@ -7,14 +7,14 @@ import { commands, ExtensionContext } from 'vscode';
 import { createLocalPackage, getLocalPackagesList, getPreviewPackagesList, importPackage } from './packageManage';
 
 export function activate(context: ExtensionContext) {
-  
+
   // Create a new typst local package
-  context.subscriptions.push(commands.registerCommand('typst-sync.createLocalPackage', async () => {
+  context.subscriptions.push(commands.registerCommand('vscode-typst-sync.createLocalPackage', async () => {
     await createLocalPackage();
   }));
 
   // Import a package
-  context.subscriptions.push(commands.registerCommand('typst-sync.importPackage', async () => {
+  context.subscriptions.push(commands.registerCommand('vscode-typst-sync.importPackage', async () => {
     const localPackagesList = await getLocalPackagesList();
     const previewPackagesList = await getPreviewPackagesList();
     const packagesList = previewPackagesList ? localPackagesList.concat(previewPackagesList) : localPackagesList;
@@ -22,7 +22,7 @@ export function activate(context: ExtensionContext) {
   }));
 
   // Import a local package
-  context.subscriptions.push(commands.registerCommand('typst-sync.importLocalPackage', async () => {
+  context.subscriptions.push(commands.registerCommand('vscode-typst-sync.importLocalPackage', async () => {
     const localPackagesList = await getLocalPackagesList();
     importPackage(localPackagesList);
   }));

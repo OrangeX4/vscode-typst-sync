@@ -1,7 +1,8 @@
 {
-  "name": "typst-sync",
+  "name": "vscode-typst-sync",
   "displayName": "Typst Sync",
-  "description": "Typst Sync",
+  "publisher": "OrangeX4",
+  "description": "Tool for Typst package management and synchronization.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.83.0"
@@ -14,15 +15,15 @@
   "contributes": {
     "commands": [
       {
-        "command": "typst-sync.importPackage",
+        "command": "vscode-typst-sync.importPackage",
         "title": "Import Typst Package"
       },
       {
-        "command": "typst-sync.importLocalPackage",
+        "command": "vscode-typst-sync.importLocalPackage",
         "title": "Import Typst Local Package"
       },
       {
-        "command": "typst-sync.createLocalPackage",
+        "command": "vscode-typst-sync.createLocalPackage",
         "title": "Create Typst Local Package"
       }
     ]
@@ -49,5 +50,14 @@
   },
   "dependencies": {
     "node-fetch": "2"
-  }
+  },
+  "license": "MIT",
+  "bugs": {
+      "url": "https://github.com/OrangeX4/vscode-typst-sync/issues"
+  },
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/OrangeX4/vscode-typst-sync"
+  },
+  "homepage": "https://orangex4.cool"
 }
