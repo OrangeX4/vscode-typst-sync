@@ -3,22 +3,33 @@ import * as fs from 'fs';
 const fetch = require('node-fetch');
 
 // https://github.com/typst/packages#local-packages
-const dataDirMap = {
-  linux: process.env.XDG_DATA_HOME || `${process.env.HOME}/.local/share`,
-  darwin: `${process.env.HOME}/Library/Application Support`,
-  win32: process.env.APPDATA,
-};
-// read dataDir from settings
-let dataDir = null as string | null | undefined;
-if (workspace.getConfiguration().has('typst.dataDir')) {
-  dataDir = workspace.getConfiguration().get('typst.dataDir');
+export function getDataDir() {
+  const dataDirMap = {
+    linux: process.env.XDG_DATA_HOME || `${process.env.HOME}/.local/share`,
+    darwin: `${process.env.HOME}/Library/Application Support`,
+    win32: process.env.APPDATA,
+  };
+  // read dataDir from settings
+  let dataDir = null as string | null | undefined;
+  if (workspace.getConfiguration().has('vscode-typst-sync.dataDir')) {
+    dataDir = workspace.getConfiguration().get('vscode-typst-sync.dataDir');
+  }
+  // if dataDir is not set, use default dataDir
+  if (!dataDir) {
+    dataDir = dataDirMap[process.platform as keyof typeof dataDirMap];
+  }
+  return dataDir;
 }
-// if dataDir is not set, use default dataDir
-if (!dataDir) {
-  dataDir = dataDirMap[process.platform as keyof typeof dataDirMap];
+
+export function getPackagesDir() {
+  const dataDir = getDataDir();
+  return dataDir ? `${dataDir}/typst/packages` : null;
 }
-const packagesDir = dataDir ? `${dataDir}/typst/packages` : null;
-const localPackagesDir = packagesDir ? `${packagesDir}/local` : null;
+
+export function getLocalPackagesDir() {
+  const packagesDir = getPackagesDir();
+  return packagesDir ? `${packagesDir}/local` : null;
+}
 // error message
 const dataDirErrorMessage = 'Can not find dataDir, please make sure you have configured dataDir.';
 
@@ -90,7 +101,14 @@ export async function getPreviewPackagesList() {
     }
   }
   // return list of preview packages like ['@preview/acrostiche:0.1.0', ...]
-  const result = Object.keys(packagesMap).map(name => `@preview/${name}:${packagesMap[name]}`).sort();
+  const result = Object.keys(packagesMap).map(name => {
+    return {
+      package: `@preview/${name}:${packagesMap[name]}`,
+      namespace: 'preview',
+      name: name,
+      version: packagesMap[name],
+    };
+  });
   return result;
 }
 
@@ -98,22 +116,43 @@ export async function getPreviewPackagesList() {
  * get local packages list
  */
 export async function getLocalPackagesList() {
+  const localPackagesDir = getLocalPackagesDir();
   // return list of local packages like ['@local/mypkg:1.0.0']
   if (!localPackagesDir) {
     return [];
   }
+  // if localPackagesDir doesn't exist, return []
+  try {
+    await fs.promises.access(localPackagesDir);
+  } catch (err) {
+    return [];
+  }
   const localPackagesList = await fs.promises.readdir(localPackagesDir);
   // get all version
-  const res = [];
+  const res = [] as {
+    package: string,
+    namespace: string,
+    name: string,
+    version: string,
+  }[];
   for (const localPackage of localPackagesList) {
-    const versions = await fs.promises.readdir(`${localPackagesDir}/${localPackage}`);
+    // filter versions only valid version like '0.1.0'
+    const versions = (await fs.promises.readdir(`${localPackagesDir}/${localPackage}`)).filter(version => {
+      const versionReg = /^\d+\.\d+\.\d+$/;
+      return versionReg.test(version);
+    });
     // sort versions like ['1.0.0', '0.2.0', '0.1.0', '0.0.2', '0.0.1']
     versions.sort(versionCompare);
     for (const version of versions) {
-      res.push(`@local/${localPackage}:${version}`);
-    }
+      res.push({
+        package: `@local/${localPackage}:${version}`,
+        namespace: 'local',
+        name: localPackage,
+        version,
+      });
   }
-  return res;
+}
+return res;
 }
 
 /**
@@ -142,6 +181,7 @@ export async function importPackage(packagesList: string[]) {
  * create local package
  */
 export async function createLocalPackage() {
+  const localPackagesDir = getLocalPackagesDir();
   if (!localPackagesDir) {
     window.showErrorMessage(dataDirErrorMessage);
     return;
@@ -202,6 +242,49 @@ export async function createLocalPackage() {
   // 5. create localPackagesDir/name/version/entrypoint
   await fs.promises.writeFile(`${packageDir}/${entrypoint}`, '= Hello Typst');
   // 6. open localPackagesDir/name/version/entrypoint
+  const document = await workspace.openTextDocument(`${packageDir}/${entrypoint}`);
+  await window.showTextDocument(document);
+}
+
+/**
+ * open local package in editor
+ */
+export async function openLocalPackage() {
+  const localPackagesDir = getLocalPackagesDir();
+  if (!localPackagesDir) {
+    window.showErrorMessage(dataDirErrorMessage);
+    return;
+  }
+  // 1. select local package
+  const localPackagesList = await getLocalPackagesList();
+  const localPackages = localPackagesList.map(pkg => pkg.package);
+  const selected = await window.showQuickPick(localPackages, {
+    placeHolder: 'Please select a local package to open'
+  });
+  if (!selected) {
+    return;
+  }
+  // 2. read localPackagesDir/name/version/typst.toml
+  const name = localPackagesList.filter(pkg => pkg.package === selected)[0].name;
+  const version = localPackagesList.filter(pkg => pkg.package === selected)[0].version;
+  const packageDir = `${localPackagesDir}/${name}/${version}`;
+  // if typst.toml doesn't exist, return
+  try {
+    await fs.promises.access(`${packageDir}/typst.toml`);
+  } catch (err) {
+    window.showErrorMessage('Can not find typst.toml.');
+    return;
+  }
+  const typstToml = await fs.readFileSync(`${packageDir}/typst.toml`, 'utf-8');
+  // parse typst.toml
+  const entrypoint = typstToml.match(/entrypoint\s*=\s*"(.*)"/)?.[1];
+  if (!entrypoint) {
+    // open typst.toml if entrypoint is not set
+    const document = await workspace.openTextDocument(`${packageDir}/typst.toml`);
+    await window.showTextDocument(document);
+    return;
+  }
+  // 3. open localPackagesDir/name/version/entrypoint
   const document = await workspace.openTextDocument(`${packageDir}/${entrypoint}`);
   await window.showTextDocument(document);
 }

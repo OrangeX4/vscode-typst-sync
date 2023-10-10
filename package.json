@@ -13,6 +13,18 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": [
+        {
+            "title": "Typst Sync",
+            "properties": {
+                "vscode-typst-sync.dataDir": {
+                    "type": "string",
+                    "default": "",
+                    "description": "data-dir in https://github.com/typst/packages#local-packages"
+                }
+            }
+        }
+    ],
     "commands": [
       {
         "command": "vscode-typst-sync.importPackage",
@@ -25,6 +37,10 @@
       {
         "command": "vscode-typst-sync.createLocalPackage",
         "title": "Create Typst Local Package"
+      },
+      {
+        "command": "vscode-typst-sync.openLocalPackage",
+        "title": "Open Typst Local Package"
       }
     ]
   },
