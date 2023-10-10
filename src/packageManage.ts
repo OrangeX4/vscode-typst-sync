@@ -1,6 +1,9 @@
-import { window, workspace } from 'vscode';
+import { ProgressLocation, window, workspace } from 'vscode';
 import * as fs from 'fs';
 const fetch = require('node-fetch');
+
+// error message
+export const dataDirErrorMessage = 'Can not find dataDir, please make sure you have configured dataDir.';
 
 // https://github.com/typst/packages#local-packages
 export function getDataDir() {
@@ -21,17 +24,20 @@ export function getDataDir() {
   return dataDir;
 }
 
-export function getPackagesDir() {
+export function getTypstDir() {
   const dataDir = getDataDir();
-  return dataDir ? `${dataDir}/typst/packages` : null;
+  return dataDir ? `${dataDir}/typst` : null;
+}
+
+export function getPackagesDir() {
+  const typstDir = getTypstDir();
+  return typstDir ? `${typstDir}/packages` : null;
 }
 
 export function getLocalPackagesDir() {
   const packagesDir = getPackagesDir();
   return packagesDir ? `${packagesDir}/local` : null;
 }
-// error message
-const dataDirErrorMessage = 'Can not find dataDir, please make sure you have configured dataDir.';
 
 // typst.toml template
 const typstTomlTemplate = (name: string, version: string, entrypoint: string) => {
@@ -71,11 +77,10 @@ function versionCompare(a: string, b: string) {
 export async function getPreviewPackagesList() {
   let res: any;
   await window.withProgress({
-    location: { viewId: 'typst' },
-    title: 'Typst Sync',
+    location: ProgressLocation.Notification,
+    title: 'Getting preview packages list...',
     cancellable: false
-  }, async (progress, token) => {
-    progress.report({ message: 'Getting preview packages list...' });
+  }, async () => {
     res = await fetch('https://packages.typst.org/preview/index.json');
   });
   if (!res || !res.ok) {

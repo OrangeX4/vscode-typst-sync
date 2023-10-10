@@ -1,8 +1,3 @@
-/*---------------------------------------------------------------------------------------------
-*  Copyright (c) Microsoft Corporation. All rights reserved.
-*  Licensed under the MIT License. See License.txt in the project root for license information.
-*--------------------------------------------------------------------------------------------*/
-
 import { commands, ExtensionContext } from 'vscode';
 import {
   getLocalPackagesList,
@@ -11,6 +6,7 @@ import {
   createLocalPackage,
   openLocalPackage
 } from './packageManage';
+import { pullRepo, pushRepo } from './gitSync';
 
 export function activate(context: ExtensionContext) {
 
@@ -36,5 +32,20 @@ export function activate(context: ExtensionContext) {
   // Open a typst local package
   context.subscriptions.push(commands.registerCommand('vscode-typst-sync.openLocalPackage', async () => {
     await openLocalPackage();
+  }));
+
+  // Push syncRepo
+  context.subscriptions.push(commands.registerCommand('vscode-typst-sync.pushSyncRepo', async () => {
+    await pushRepo('Pushed to syncRepo.');
+  }));
+
+  // Pull syncRepo
+  context.subscriptions.push(commands.registerCommand('vscode-typst-sync.pullSyncRepo', async () => {
+    await pullRepo('Pulled from syncRepo.');
+  }));
+
+  // Sync syncRepo
+  context.subscriptions.push(commands.registerCommand('vscode-typst-sync.typstSync', async () => {
+    await pushRepo('Synced with syncRepo.');
   }));
 }

@@ -14,16 +14,21 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": [
-        {
-            "title": "Typst Sync",
-            "properties": {
-                "vscode-typst-sync.dataDir": {
-                    "type": "string",
-                    "default": "",
-                    "description": "data-dir in https://github.com/typst/packages#local-packages"
-                }
-            }
+      {
+        "title": "Typst Sync",
+        "properties": {
+          "vscode-typst-sync.dataDir": {
+            "type": "string",
+            "default": "",
+            "description": "data-dir in https://github.com/typst/packages#local-packages"
+          },
+          "vscode-typst-sync.syncRepo": {
+            "type": "string",
+            "default": "",
+            "description": "syncRepo like https://github.com/OrangeX4/typst-sync-repo.git"
+          }
         }
+      }
     ],
     "commands": [
       {
@@ -41,6 +46,18 @@
       {
         "command": "vscode-typst-sync.openLocalPackage",
         "title": "Open Typst Local Package"
+      },
+      {
+        "command": "vscode-typst-sync.pushSyncRepo",
+        "title": "Push Typst Repo"
+      },
+      {
+        "command": "vscode-typst-sync.pullSyncRepo",
+        "title": "Pull Typst Repo"
+      },
+      {
+        "command": "vscode-typst-sync.typstSync",
+        "title": "Typst Sync"
       }
     ]
   },
@@ -65,15 +82,16 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "node-fetch": "2"
+    "node-fetch": "2",
+    "simple-git": "^3.20.0"
   },
   "license": "MIT",
   "bugs": {
-      "url": "https://github.com/OrangeX4/vscode-typst-sync/issues"
+    "url": "https://github.com/OrangeX4/vscode-typst-sync/issues"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/OrangeX4/vscode-typst-sync"
+    "type": "git",
+    "url": "https://github.com/OrangeX4/vscode-typst-sync"
   },
   "homepage": "https://orangex4.cool"
 }
