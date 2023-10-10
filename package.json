@@ -2,8 +2,9 @@
   "name": "vscode-typst-sync",
   "displayName": "Typst Sync",
   "publisher": "OrangeX4",
-  "description": "Tool for Typst package management and synchronization.",
-  "version": "0.0.1",
+  "description": "A tool for Typst local packages management and synchronization.",
+  "icon": "icon.png",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.83.0"
   },

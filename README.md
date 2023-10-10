@@ -1,31 +1,35 @@
-# typst-sync README
+![](./icon.png)
 
-This is the README for your extension "typst-sync". After writing up a brief description, we recommend including the following sections.
+# Typst Sync
+
+A tool for Typst local packages management and synchronization.
+
+https://github.com/OrangeX4/vscode-typst-sync
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- `Shift + Cmd/Ctrl + P` to open the command panel to execute the commands. Of course, you can also set shortcuts for these commands.
+- **Typst Package Manage**: manage your typst local packages.
+  - `Import Typst Package` command: get text like `#import "@preview/example:0.1.0": *` and search local packages and preview packages.
+  - `Import Typst Local Package` command: get text like `#import "@local/mytemplate:0.1.0": *` and only search local packages.
+  - `Create Typst Local Package` command: create a typst local package.
+  - `Open Typst Local Package` command: open a typst local package entrypoint file to edit it.
+- **Sync**: synchronize local packages to remote repository.
+  - You MUST to configure `syncRepo` setting to enable sync feature. **You can input a empty repo in github to init it.**
+  - `Typst Sync`: synchronize local packages with remote repository.
+  - `Push Typst Repo`: push to repository (actually consistent with `Typst Sync`).
+  - `Pull Typst Repo`: pull from repository only.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+**You should have git installed locally for simple-git to work.**
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `vscode-typst-sync.syncRepo`: syncRepo like https://github.com/OrangeX4/typst-sync-repo.git
+- `vscode-typst-sync.dataDir`: data-dir in https://github.com/typst/packages#local-packages
 
 ## Known Issues
 
@@ -33,39 +37,17 @@ Calling out known issues can help limit users opening duplicate issues against y
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.2.0
 
-### 1.0.0
+- add command `Import Typst Package`
+- add command `Import Typst Local Package`
+- add command `Create Typst Local Package`
+- add command `Open Typst Local Package`
+- add command `Push Typst Repo`
+- add command `Pull Typst Repo`
+- add command `Typst Sync`
 
-Initial release of ...
 
-### 1.0.1
+## License
 
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+This project is licensed under the MIT License.
