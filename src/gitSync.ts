@@ -1,4 +1,4 @@
-import { window, workspace } from "vscode";
+import { ProgressLocation, window, workspace } from "vscode";
 import { dataDirErrorMessage, getTypstDir } from "./packageManage";
 import * as fs from 'fs';
 import simpleGit from 'simple-git';
@@ -31,10 +31,16 @@ export async function getSyncRepoGit() {
   } catch (err) {
     await fs.promises.mkdir(typstDir, { recursive: true });
   }
-  // 3. if .git not exist, init it
+  // 3. if .git not exist, init it or clone it
   const git = simpleGit(typstDir);
   if (!(await git.checkIsRepo())) {
-    await git.init();
+    if ((await fs.promises.readdir(typstDir)).length === 0) {
+      await git.clone(syncRepo, typstDir);
+    } else {
+      await git.init();
+      await git.add('.');
+      await git.commit('init');
+    }
   }
   // 4. add remote, if remote exist and is not the same, ask
   const originRemotes = (await git.getRemotes(true)).filter(remote => remote.name === 'origin');
@@ -55,46 +61,78 @@ export async function getSyncRepoGit() {
   return git;
 }
 
-export async function pushRepo(message: string) {
-  // 1. get syncRepo git
-  const git = await getSyncRepoGit();
-  if (!git) {
-    return;
-  }
-  // 2. get current branch
-  const currentBranch = await git.branchLocal();
-  // 3. git add all files to stage
-  await git.add('.');
-  // 4. git commit with timestamp, if there are changes
-  const status = await git.status();
-  if (status.files.length !== 0) {
-    const timestamp = new Date().toISOString();
-    await git.commit(timestamp);
-  }
-  // 5. git pull and keep all local changes (merge strategy)
-  try {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    await git.pull('origin', currentBranch.current);
-  } catch (err) {
-    // ignore
-  }
-  // 6. git push
-  await git.push('origin', currentBranch.current);
-  // 7. info
-  window.showInformationMessage(message);
+export async function pushRepo() {
+  await window.withProgress({
+    location: ProgressLocation.Notification,
+    title: 'Syncing',
+    cancellable: true
+  }, async (progress, token) => {
+    // 0. cancel callback
+    token.onCancellationRequested(() => {
+      window.showInformationMessage('Syncing with syncRepo canceled.');
+    });
+    // 1. get syncRepo git
+    progress.report({ increment: 15, message: 'Getting syncRepo...' });
+    if (token.isCancellationRequested) { return; }
+    const git = await getSyncRepoGit();
+    if (!git) {
+      return;
+    }
+    // 2. get current branch
+    progress.report({ increment: 15, message: 'Getting current branch...' });
+    const currentBranch = await git.branchLocal();
+    if (token.isCancellationRequested) { return; }
+    // 3. git add all files to stage
+    progress.report({ increment: 15, message: 'Adding files to stage...' });
+    await git.add('.');
+    if (token.isCancellationRequested) { return; }
+    // 4. git commit with timestamp, if there are changes
+    progress.report({ increment: 15, message: 'Committing...' });
+    const status = await git.status();
+    if (status.files.length !== 0) {
+      const timestamp = new Date().toISOString();
+      await git.commit(timestamp);
+    }
+    if (token.isCancellationRequested) { return; }
+    // 5. git pull and keep all local changes (merge strategy)
+    progress.report({ increment: 15, message: 'Pulling...' });
+    try {
+      await git.pull('origin', currentBranch.current);
+    } catch (err) {
+      // ignore
+    }
+    if (token.isCancellationRequested) { return; }
+    // 6. git push
+    progress.report({ increment: 15, message: 'Pushing...' });
+    await git.push(['origin', currentBranch.current]);
+    if (token.isCancellationRequested) { return; }
+  });
 }
 
-export async function pullRepo(message: string) {
-  // 1. get syncRepo git
-  const git = await getSyncRepoGit();
-  if (!git) {
-    return;
-  }
-  // 2. get current branch
-  const currentBranch = await git.branchLocal();
-  // 3. git pull and keep all remote changes (merge strategy)
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  await git.pull('origin', currentBranch.current);
-  // 4. info
-  window.showInformationMessage(message);
+export async function pullRepo() {
+  await window.withProgress({
+    location: ProgressLocation.Notification,
+    title: 'Pulling',
+    cancellable: true
+  }, async (progress, token) => {
+    // 0. cancel callback
+    token.onCancellationRequested(() => {
+      window.showInformationMessage('Pulling from syncRepo canceled.');
+    });
+    // 1. get syncRepo git
+    progress.report({ increment: 33, message: 'Getting syncRepo...' });
+    const git = await getSyncRepoGit();
+    if (!git) {
+      return;
+    }
+    if (token.isCancellationRequested) { return; }
+    // 2. get current branch
+    progress.report({ increment: 33, message: 'Getting current branch...' });
+    const currentBranch = await git.branchLocal();
+    if (token.isCancellationRequested) { return; }
+    // 3. git pull and keep all remote changes (merge strategy)
+    progress.report({ increment: 33, message: 'Pulling...' });
+    await git.pull('origin', currentBranch.current);
+    if (token.isCancellationRequested) { return; }
+  });
 }

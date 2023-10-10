@@ -36,16 +36,16 @@ export function activate(context: ExtensionContext) {
 
   // Push syncRepo
   context.subscriptions.push(commands.registerCommand('vscode-typst-sync.pushSyncRepo', async () => {
-    await pushRepo('Pushed to syncRepo.');
+    await pushRepo();
   }));
 
   // Pull syncRepo
   context.subscriptions.push(commands.registerCommand('vscode-typst-sync.pullSyncRepo', async () => {
-    await pullRepo('Pulled from syncRepo.');
+    await pullRepo();
   }));
 
   // Sync syncRepo
   context.subscriptions.push(commands.registerCommand('vscode-typst-sync.typstSync', async () => {
-    await pushRepo('Synced with syncRepo.');
+    await pushRepo();
   }));
 }
