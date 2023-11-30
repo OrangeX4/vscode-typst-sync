@@ -100,7 +100,7 @@ export async function getPreviewPackagesList() {
       packagesMap[name] = version;
     } else {
       const oldVersion = packagesMap[name];
-      if (oldVersion && versionCompare(version, oldVersion) > 0) {
+      if (oldVersion && versionCompare(version, oldVersion) < 0) {
         packagesMap[name] = version;
       }
     }
