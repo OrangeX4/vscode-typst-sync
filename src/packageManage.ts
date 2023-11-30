@@ -141,6 +141,11 @@ export async function getLocalPackagesList() {
     version: string,
   }[];
   for (const localPackage of localPackagesList) {
+    // if localPackage is not a directory, continue
+    const stat = await fs.promises.stat(`${localPackagesDir}/${localPackage}`);
+    if (!stat.isDirectory()) {
+      continue;
+    }
     // filter versions only valid version like '0.1.0'
     const versions = (await fs.promises.readdir(`${localPackagesDir}/${localPackage}`)).filter(version => {
       const versionReg = /^\d+\.\d+\.\d+$/;
